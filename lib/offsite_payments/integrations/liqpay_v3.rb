@@ -23,7 +23,7 @@ module OffsitePayments
       self.service_url = 'https://www.liqpay.com/api/3/checkout'
 
       def self.notification(post, options = {})
-        Notification.new(post)
+        Notification.new(post, options)
       end
 
       def self.return(query_string, options = {})
@@ -78,16 +78,16 @@ module OffsitePayments
       class Notification < OffsitePayments::Notification
         include ActiveUtils::PostsData
 
-        def self.recognizes?(params)
-          params.key?('signature') && params.key?('data')
-        end
-
         def initialize(post, options = {})
           raise ArgumentError if post.blank?
           super
 
           post_params = CGI.parse(post).transform_values(&:first)
           @params.merge!(liqpay.decode_data(post_params['data']))
+        end
+
+        def self.recognizes?(params)
+          params.key?('signature') && params.key?('data')
         end
 
         def complete?
